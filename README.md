@@ -2,6 +2,9 @@
 
 An interactive, web-based financial analytics terminal built with **Python**, **Streamlit**, and **Plotly**. This dashboard connects directly to the **Federal Reserve Economic Data (FRED) API** to fetch, analyze, and visualize crucial macroeconomic indicators, specifically tracking historical Treasury Yields, the Yield Curve Spread, and automated recession regime shading.
 
+## 📱 Interface Preview
+![Macroeconomic Risk Terminal Preview](assets/dashboard_preview.png)
+
 ## 📊 Core Features
 * **Real-time Data Fetching:** Dynamic API integration with FRED for the latest macroeconomic indicators.
 * **Yield Curve Analysis:** Side-by-side visualization of the 10-Year vs. 2-Year Treasury Yields and the current Yield Curve Spread.
