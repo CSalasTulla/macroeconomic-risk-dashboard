@@ -1,6 +1,12 @@
-# Ignore local Streamlit secrets
+# Ignore local Streamlit secrets and configurations
 .streamlit/
 
-# Ignore Python cache files
+# Ignore Python compiled cache files (Safe: won't ignore app.py)
 __pycache__/
-*.py
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore local virtual environments
+venv/
+.venv/
