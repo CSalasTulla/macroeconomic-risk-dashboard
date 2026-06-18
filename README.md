@@ -4,6 +4,8 @@ An interactive, web-based financial analytics terminal built with **Python**, **
 
 ## 📱 Interface Preview
 ![Macroeconomic Risk Terminal Preview](assets/dashboard_preview.png)
+![Macroeconomic Risk Terminal Preview](assets/dashboard_preview2.png)
+
 
 ## 📊 Core Features
 * **Real-time Data Fetching:** Dynamic API integration with FRED for the latest macroeconomic indicators.
