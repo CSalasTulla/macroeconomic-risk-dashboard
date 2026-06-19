@@ -25,15 +25,18 @@ def get_macro_data(years):
     yield_2y = fred.get_series('DGS2')
     financial_stress = fred.get_series('STLFSI4')
     recession_indicator = fred.get_series('USRECD')
+    rec_prob = fred.get_series('RECPROUSM156N') #monthly
 
     # Merge into a clean Pandas dataframe
-    df = pd.DataFrame({'10Y_Yield': yield_10y, '2Y_Yield': yield_2y, 'Final_Stress': financial_stress, 'Recession_Indicator': recession_indicator})
+    df = pd.DataFrame({'10Y_Yield': yield_10y, '2Y_Yield': yield_2y, 'Final_Stress': financial_stress,
+                       'Recession_Indicator': recession_indicator, 'Rec_Probability': rec_prob})
     df.index = pd.to_datetime(df.index)
     df['Final_Stress'] = df['Final_Stress'].ffill()
 
 
     # Calculate the Spread (The classic recession predictor)
     df['Spread'] = df['10Y_Yield'] - df['2Y_Yield']
+    df['Rec_Probability'] = df['Rec_Probability'].ffill()
 
     # Slice the dataframe based on the user's slider input
     start_date = pd.Timestamp.now() - pd.DateOffset(years=years)
@@ -218,7 +221,78 @@ try:
                 )
         st.markdown("---")
 
-    col5, col6 = st.columns(2)
+    col4 = st.columns(1)[0]
+
+    current_prob = latest_row['Rec_Probability']
+
+    # Format it safely as a percentage string
+    prob_str = f"{round(current_prob, 1)}%" if not pd.isna(current_prob) else "N/A"
+
+    with col4:
+        st.metric(
+            label="Live Model Risk Probability",
+            value=prob_str,
+            help="Calculated by the dynamic-factor Markov-switching macro model. Readings above 20% represent high systemic threat."
+        )
+
+    st.markdown("### 🔮 Coincident Model: Macro Regime Recession Probability")
+    st.write(
+        "This dynamic-factor model tracks real-time mathematical probability thresholds based on macro data aggregates.")
+
+    # Filter data to match user's selected slider horizon
+    filtered_data = data[data.index >= (data.index[-1] - pd.DateOffset(years=lookback_years))]
+
+    import plotly.graph_objects as go
+
+    fig_prob = go.Figure()
+
+    # Plot the real-time probability curve
+    fig_prob.add_trace(go.Scatter(
+        x=filtered_data.index,
+        y=filtered_data['Rec_Probability'],
+        mode='lines',
+        name='Recession Probability %',
+        line=dict(color='#FFA500', width=2.5)  # Warning Amber Line
+    ))
+
+    # Add a critical 20% Structural Warning Line
+    fig_prob.add_shape(
+        type="line",
+        x0=filtered_data.index[0], y0=20,
+        x1=filtered_data.index[-1], y1=20,
+        line=dict(color="Red", width=1.5, dash="dash"),
+    )
+
+    # Text annotation for the threshold line
+    fig_prob.add_annotation(
+        x=filtered_data.index[int(len(filtered_data) / 10)], y=23,
+        text="⚠️ Critical Macro Regime Trigger (20%)",
+        showarrow=False,
+        font=dict(color="Red", size=10)
+    )
+
+    # Overlay NBER recession shaded blocks (Using your existing recession block tool)
+    recession_periods = get_recession_periods(filtered_data)
+    for start_date, end_date in recession_periods:
+        fig_prob.add_vrect(
+            x0=start_date, x1=end_date,
+            fillcolor="Red", opacity=0.15, line_width=0
+        )
+
+    # Format chart scales
+    fig_prob.update_layout(
+        xaxis_title="Timeline",
+        yaxis_title="Probability Intensity (%)",
+        yaxis=dict(range=[0, 105]),
+        margin=dict(l=40, r=40, t=20, b=40),
+        height=350,
+        template="plotly_dark"
+    )
+
+    st.plotly_chart(fig_prob, use_container_width=True)
+
+    col5 = st.columns(1)[0]
+    col6 = st.columns(1)[0]
 
     #Treasury Yields (10Y vs 2Y) Chart
     with col5:
